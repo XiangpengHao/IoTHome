@@ -1,8 +1,10 @@
 from epd import epd2in9b
+import hum
 import time
 from PIL import Image, ImageDraw, ImageFont
 import traceback
 import logging
+import datetime
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -18,10 +20,22 @@ class Display:
         self.black_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
         self.clear()
 
-    def draw_dummy(self):
+    def reset_img(self):
+        self.red_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
+        self.black_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
+
+    def draw_weather(self):
+        self.reset_img()
         black_draw = ImageDraw.Draw(self.black_img)
         red_draw = ImageDraw.Draw(self.red_img)
         black_draw.text((5, 0), "Patrick's Smart Home", font=font16, fill=0)
+        black_draw.text((5, 30), "temp:", font=font20, fill=0)
+        black_draw.text((5, 50), "humi:", font=font20, fill=0)
+
+        humi, temp = hum.read()
+        red_draw.text((75, 30), "{0:0.1f}°C".format(temp), font=font20, fill=0)
+        red_draw.text((75, 50), "{0:0.1f}%".format(humi), font=font20, fill=0)
+
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
 
 
@@ -35,6 +49,9 @@ class Display:
 
 if __name__ == '__main__':
     dp = Display()
-    dp.draw_dummy()
-    dp.sleep()
+    while True:
+        dp.draw_weather()
+        dp.sleep()
+        time.sleep(10*60)
+        logging.info("Refreshing... %s", datetime.datetime.now())
 
