@@ -6,7 +6,7 @@
 ![](https://file.haoxp.xyz/smart_home.jpg)
 
 ## Components
-1. e-paper module, weshare e-paper, from taobao.
+1. e-paper module, waveshare e-paper, from taobao.
 2. PIR motion sensor, used to turn on/off the light when I'm home.
 3. Adafruit AM 2302 humidity and temperture sensor.
 4. Raspberry pi 3, controlling all of them.
