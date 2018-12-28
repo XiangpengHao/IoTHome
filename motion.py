@@ -37,10 +37,12 @@ def motion_thread():
             logging.info("Motion detected: %s", datetime.datetime.now())
             set_light('light_on')
             time.sleep(5)
+            counter = 0
         time.sleep(1)
         counter += 1
         if counter >= TIME_LIMIT:
             set_light('light_off')
+            counter = 0
 
 def light_on(bot, update):
     set_light('light_on')
