@@ -25,6 +25,7 @@ class Display:
         self.black_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
 
     def draw_weather(self):
+        self.epd.init()
         self.reset_img()
         black_draw = ImageDraw.Draw(self.black_img)
         red_draw = ImageDraw.Draw(self.red_img)
@@ -37,6 +38,7 @@ class Display:
         red_draw.text((75, 50), "{0:0.1f}%".format(humi), font=font20, fill=0)
 
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
+        self.sleep()
 
 
     def clear(self):
@@ -51,7 +53,6 @@ if __name__ == '__main__':
     dp = Display()
     while True:
         dp.draw_weather()
-        dp.sleep()
         time.sleep(10*60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 
