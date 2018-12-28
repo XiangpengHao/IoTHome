@@ -13,7 +13,7 @@ updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN)
+GPIO.setup(23, GPIO.IN)
 
 IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 
@@ -34,7 +34,7 @@ def motion_thread():
     logging.info("begin to detect motion...")
     counter = 0
     while True:
-        if GPIO.input(17):
+        if GPIO.input(23):
             now = datetime.datetime.now()
             logging.info("Motion detected: %s", now)
             if now.hour not in DND:
