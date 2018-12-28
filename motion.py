@@ -18,6 +18,7 @@ GPIO.setup(17, GPIO.IN)
 IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 
 TIME_LIMIT = 10 * 60
+DND = (0, 8)
 
 light_status = 'light_off'
 
@@ -34,8 +35,10 @@ def motion_thread():
     counter = 0
     while True:
         if GPIO.input(17):
-            logging.info("Motion detected: %s", datetime.datetime.now())
-            set_light('light_on')
+            now = datetime.datetime.now()
+            logging.info("Motion detected: %s", now)
+            if now.hour not in DND:
+                set_light('light_on')
             time.sleep(5)
             counter = 0
         time.sleep(1)
