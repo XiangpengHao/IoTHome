@@ -29,17 +29,22 @@ class Display:
         self.reset_img()
         black_draw = ImageDraw.Draw(self.black_img)
         red_draw = ImageDraw.Draw(self.red_img)
-        black_draw.text((5, 0), "Patrick's Smart Home", font=font16, fill=0)
-        black_draw.text((5, 30), "temp:", font=font20, fill=0)
-        black_draw.text((5, 50), "humi:", font=font20, fill=0)
-
+        now = datetime.datetime.now()
         humi, temp = hum.read()
+
+        black_draw.text((5, 0), "Patrick's Smart Home", font=font16, fill=0)
+
+        black_draw.text((5, 30), "temp:", font=font20, fill=0)
         red_draw.text((75, 30), "{0:0.1f}°C".format(temp), font=font20, fill=0)
+
+        black_draw.text((5, 50), "humi:", font=font20, fill=0)
         red_draw.text((75, 50), "{0:0.1f}%".format(humi), font=font20, fill=0)
+
+        black_draw.text((5, 90), "last update:", font=font16, fill=0)
+        red_draw.text((110, 90), now.strftime("%b-%d %H:%M:%S"), font=font16, fill=0)
 
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
         self.sleep()
-
 
     def clear(self):
         logging.info("Clear all")
