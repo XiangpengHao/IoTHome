@@ -4,8 +4,10 @@ from telegram.ext import CommandHandler, Updater
 import requests
 import datetime
 import logging
+import threading
 
 from config import TOKEN, IFTTT
+from display import Display
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -47,6 +49,13 @@ def motion_thread():
             set_light('light_off')
             counter = 0
 
+def display_thread():
+    dp = Display()
+    while True:
+        dp.draw_weather()
+        time.sleep(10*60)
+        logging.info("Refreshing... %s", datetime.datetime.now())
+
 def light_on(bot, update):
     set_light('light_on')
     bot.send_message(chat_id=update.message.chat_id, text="light is on")
@@ -64,5 +73,7 @@ dispatcher.add_handler(light_off_handler)
 
 updater.start_polling()
 logging.info("start polling...")
-motion_thread()
+
+threading.Thread(target=motion_thread).start()
+threading.Thread(target=display_thread).start()
 
