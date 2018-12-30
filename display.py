@@ -24,7 +24,7 @@ class Display:
         self.red_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
         self.black_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
 
-    def draw_weather(self):
+    def draw_weather(self, light_status):
         self.epd.init()
         self.reset_img()
         black_draw = ImageDraw.Draw(self.black_img)
@@ -40,8 +40,11 @@ class Display:
         black_draw.text((5, 50), "humi:", font=font20, fill=0)
         red_draw.text((75, 50), "{0:0.1f}%".format(humi), font=font20, fill=0)
 
-        black_draw.text((5, 90), "last update:", font=font16, fill=0)
-        red_draw.text((110, 90), now.strftime("%b-%d %H:%M:%S"), font=font16, fill=0)
+        black_draw.text((5, 70), "light:", font=font20, fill=0)
+        red_draw.text((75, 70), "on" if light_status else "off", font=font20, fill=0)
+
+        black_draw.text((5, 110), "last update:", font=font16, fill=0)
+        red_draw.text((110, 110), now.strftime("%b-%d %H:%M:%S"), font=font16, fill=0)
 
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
         self.sleep()

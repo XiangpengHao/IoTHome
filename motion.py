@@ -50,9 +50,10 @@ def motion_thread():
             counter = 0
 
 def display_thread():
+    global light_status
     dp = Display()
     while True:
-        dp.draw_weather()
+        dp.draw_weather(light_status=="light_on")
         time.sleep(10*60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 
