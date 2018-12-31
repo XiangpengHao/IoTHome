@@ -20,7 +20,7 @@ GPIO.setup(23, GPIO.IN)
 IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 
 TIME_LIMIT = 10 * 60
-DND = (0, 8)
+DND = range(0, 8)
 
 light_status = 'light_off'
 
