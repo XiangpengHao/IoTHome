@@ -22,15 +22,38 @@ IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 TIME_LIMIT = 10 * 60
 DND = range(0, 8)
 
-light_status = 'light_off'
+class Light:
+    def __init__(self, on_event, off_event):
+        self.light_status = False
+        self.on_event = on_event
+        self.off_event = off_event
 
-def set_light(status):
-    global light_status
-    if status == light_status:
-        return
-    light_status = status
-    logging.warn("set light to %s", status)
-    requests.get(IFTTT_URL.format(event=status, key=IFTTT))
+    def on(self):
+        if self.light_status:
+            return
+        self.light_status = True
+        logging.warn("%s triggered", self.on_event)
+        requests.get(IFTTT_URL.format(event=self.on_event, key=IFTTT))
+
+    def off(self):
+        if not self.light_status:
+            return
+        self.light_status = False 
+        logging.warn("%s triggered", self.off_event)
+        requests.get(IFTTT_URL.format(event=self.off_event, key=IFTTT))
+
+    def bot_on(self, bot, update):
+        self.on()
+        bot.send_message(chat_id=update.message.chat_id, text="%s triggered"%(self.on_event))
+
+    def bot_off(self, bot, update):
+        self.off()
+        bot.send_message(chat_id=update.message.chat_id, text="%s triggered"%(self.off_event))
+
+
+
+room_light = Light("light_on", "light_off")
+plant_light = Light("plant_on", "plant_off")
 
 def motion_thread():
     logging.info("begin to detect motion...")
@@ -40,37 +63,31 @@ def motion_thread():
             now = datetime.datetime.now()
             logging.info("Motion detected: %s", now)
             if now.hour not in DND:
-                set_light('light_on')
+                room_light.on()
+                plant_light.off()
             time.sleep(5)
             counter = 0
         time.sleep(1)
         counter += 1
         if counter >= TIME_LIMIT:
-            set_light('light_off')
+            room_light.off()
+            if now.hour not in DND:
+                plant_light.on()
+            else:
+                plant_light.off()
             counter = 0
 
 def display_thread():
-    global light_status
     dp = Display()
     while True:
-        dp.draw_weather(light_status=="light_on")
+        dp.draw_weather(room_light.light_status)
         time.sleep(10*60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 
-def light_on(bot, update):
-    set_light('light_on')
-    bot.send_message(chat_id=update.message.chat_id, text="light is on")
-
-def light_off(bot, update):
-    set_light('light_off')
-    bot.send_message(chat_id=update.message.chat_id, text="light is off")
-
-
-light_on_handler = CommandHandler('light_on', light_on)
-light_off_handler = CommandHandler('light_off', light_off)
-
-dispatcher.add_handler(light_on_handler)
-dispatcher.add_handler(light_off_handler)
+dispatcher.add_handler(CommandHandler('light_on', room_light.bot_on))
+dispatcher.add_handler(CommandHandler('light_off', room_light.bot_off))
+dispatcher.add_handler(CommandHandler('plant_on', plant_light.bot_on))
+dispatcher.add_handler(CommandHandler('plant_off', plant_light.bot_off))
 
 updater.start_polling()
 logging.info("start polling...")
