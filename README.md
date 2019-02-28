@@ -3,7 +3,7 @@
 ## How's my home?
 
 
-![](https://file.haoxp.xyz/smart_home.jpg)
+![](images/smart_home.jpg)
 
 ## Components
 1. e-paper module, waveshare e-paper, from taobao.
