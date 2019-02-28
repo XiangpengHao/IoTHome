@@ -4,6 +4,7 @@
 
 
 ![](images/smart_home.jpg)
+![](images/plants.png)
 
 ## Components
 1. e-paper module, waveshare e-paper, from taobao.
