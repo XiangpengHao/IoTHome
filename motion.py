@@ -59,8 +59,8 @@ def motion_thread():
     logging.info("begin to detect motion...")
     counter = 0
     while True:
+        now = datetime.datetime.now()
         if GPIO.input(23):
-            now = datetime.datetime.now()
             logging.info("Motion detected: %s", now)
             if now.hour not in DND:
                 room_light.on()
