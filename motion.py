@@ -16,6 +16,7 @@ dispatcher = updater.dispatcher
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.IN)
+GPIO.setup(5, GPIO.IN)
 
 IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 
@@ -80,7 +81,7 @@ def motion_thread():
 def display_thread():
     dp = Display()
     while True:
-        dp.draw_weather(room_light.light_status)
+        dp.draw(room_light.light_status, GPIO.input(5))
         time.sleep(10*60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 

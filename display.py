@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 font16 = ImageFont.truetype('fonts/wqy-microhei.ttc', 16)
 font20 = ImageFont.truetype('fonts/wqy-microhei.ttc', 20)
 font24 = ImageFont.truetype('fonts/wqy-microhei.ttc', 24)
+font40 = ImageFont.truetype('fonts/wqy-microhei.ttc', 40)
 
 class Display:
     def __init__(self):
@@ -24,7 +25,7 @@ class Display:
         self.red_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
         self.black_img = Image.new("1", (epd2in9b.EPD_HEIGHT, epd2in9b.EPD_WIDTH), 255)
 
-    def draw_weather(self, light_status):
+    def draw(self, light_status, soil_status):
         self.epd.init()
         self.reset_img()
         black_draw = ImageDraw.Draw(self.black_img)
@@ -34,17 +35,17 @@ class Display:
 
         black_draw.text((5, 0), "Patrick's Smart Home", font=font16, fill=0)
 
-        black_draw.text((5, 30), "temp:", font=font20, fill=0)
-        red_draw.text((75, 30), "{0:0.1f}°C".format(temp), font=font20, fill=0)
+        black_draw.text((5, 30), "light:", font=font20, fill=0)
+        red_draw.text((70, 30), "on" if light_status else "off", font=font20, fill=0)
 
-        black_draw.text((5, 50), "humi:", font=font20, fill=0)
-        red_draw.text((75, 50), "{0:0.1f}%".format(humi), font=font20, fill=0)
-
-        black_draw.text((5, 70), "light:", font=font20, fill=0)
-        red_draw.text((75, 70), "on" if light_status else "off", font=font20, fill=0)
+        black_draw.text((5, 50), "soil:", font=font20, fill=0)
+        red_draw.text((70, 50), "need water" if soil_status else "good", font=font20, fill=0)
 
         black_draw.text((5, 110), "last update:", font=font16, fill=0)
         red_draw.text((110, 110), now.strftime("%b-%d %H:%M:%S"), font=font16, fill=0)
+
+        red_draw.text((150, 20), "{0:0.1f}°C".format(temp), font=font40, fill=0)
+        red_draw.text((150, 65), "{0:0.1f}%".format(humi), font=font40, fill=0)
 
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
         self.sleep()
