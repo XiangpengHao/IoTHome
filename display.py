@@ -36,16 +36,16 @@ class Display:
         black_draw.text((5, 0), "Patrick's Smart Home", font=font16, fill=0)
 
         black_draw.text((5, 30), "light:", font=font20, fill=0)
-        red_draw.text((70, 30), "on" if light_status else "off", font=font20, fill=0)
+        red_draw.text((65, 30), "on" if light_status else "off", font=font20, fill=0)
 
         black_draw.text((5, 50), "soil:", font=font20, fill=0)
-        red_draw.text((70, 50), "need water" if soil_status else "good", font=font20, fill=0)
+        red_draw.text((65, 50), "need water" if soil_status else "good", font=font20, fill=0)
+        
+        black_draw.text((5, 70), "update:", font=font20, fill=0)
+        red_draw.text((5, 90), now.strftime("%b-%d %H:%M"), font=font20, fill=0)
 
-        black_draw.text((5, 110), "last update:", font=font16, fill=0)
-        red_draw.text((110, 110), now.strftime("%b-%d %H:%M:%S"), font=font16, fill=0)
-
-        red_draw.text((150, 20), "{0:0.1f}°C".format(temp), font=font40, fill=0)
-        red_draw.text((150, 65), "{0:0.1f}%".format(humi), font=font40, fill=0)
+        red_draw.text((160, 20), "{0:0.1f}°C".format(temp), font=font40, fill=0)
+        red_draw.text((160, 65), "{0:0.1f}%".format(humi), font=font40, fill=0)
 
         self.epd.display(self.epd.getbuffer(self.black_img), self.epd.getbuffer(self.red_img))
         self.sleep()
