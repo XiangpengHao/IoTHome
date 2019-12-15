@@ -5,6 +5,7 @@ import requests
 import datetime
 import logging
 import threading
+from aiohttp import web
 
 from config import TOKEN, IFTTT
 from display import Display
@@ -33,14 +34,14 @@ class Light:
         if self.light_status:
             return
         self.light_status = True
-        logging.warn("%s triggered", self.on_event)
+        logging.warning("%s triggered", self.on_event)
         requests.get(IFTTT_URL.format(event=self.on_event, key=IFTTT))
 
     def off(self):
         if not self.light_status:
             return
         self.light_status = False 
-        logging.warn("%s triggered", self.off_event)
+        logging.warning("%s triggered", self.off_event)
         requests.get(IFTTT_URL.format(event=self.off_event, key=IFTTT))
 
     def bot_on(self, bot, update):
@@ -85,6 +86,11 @@ def display_thread():
         time.sleep(10*60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 
+def web_api_thread():
+    app = web.Application()
+    app.add_routes([web.get('/room_on', room_light.on)])
+    web.run_app()
+
 dispatcher.add_handler(CommandHandler('light_on', room_light.bot_on))
 dispatcher.add_handler(CommandHandler('light_off', room_light.bot_off))
 dispatcher.add_handler(CommandHandler('plant_on', plant_light.bot_on))
@@ -93,6 +99,7 @@ dispatcher.add_handler(CommandHandler('plant_off', plant_light.bot_off))
 updater.start_polling()
 logging.info("start polling...")
 
-threading.Thread(target=motion_thread).start()
-threading.Thread(target=display_thread).start()
+# threading.Thread(target=motion_thread).start()
+# threading.Thread(target=display_thread).start()
+# threading.Thread(target=web_api_thread).start()
 

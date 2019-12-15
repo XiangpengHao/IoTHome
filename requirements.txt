@@ -1,0 +1,5 @@
+python-telegram-bot
+aiohttp
+requests
+RPi.GPIO
+Pillow
