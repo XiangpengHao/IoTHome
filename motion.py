@@ -143,6 +143,7 @@ def main():
     loop = asyncio.get_event_loop()
     loop.create_task(motion_task())
     loop.create_task(web_task())
+    loop.create_task(display_task())
     bot_setup(loop)
     loop.run_forever()
 
