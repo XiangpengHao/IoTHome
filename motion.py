@@ -8,7 +8,7 @@ import aiohttp
 import asyncio
 from aiogram import Bot, Dispatcher, executor, types
 
-from config import TOKEN, IFTTT
+from config import TOKEN, IFTTT, WEB_TOKEN
 from display import Display
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -61,10 +61,18 @@ class Light:
         await message.reply("%s triggered" % (self.off_event), reply=False)
 
     async def web_on(self, request):
+        token = request.rel_url.query.get('token')
+        if token != WEB_TOKEN:
+            return web.Response(text='invalid token')
+
         await self.on()
         return web.Response(text=f"{self.on_event} triggered")
 
     async def web_off(self, request):
+        token = request.rel_url.query.get('token')
+        if token != WEB_TOKEN:
+            return web.Response(text='invalid token')
+
         await self.off()
         return web.Response(text=f"{self.off_event} triggered")
 
