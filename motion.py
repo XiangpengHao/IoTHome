@@ -8,6 +8,7 @@ import aiohttp
 import asyncio
 import json
 import dateparser 
+import dateutil
 from aiogram import Bot, Dispatcher, executor, types
 
 from config import TOKEN, IFTTT, WEB_TOKEN
@@ -111,8 +112,9 @@ class Room:
                 if json_obj['status'] != 'OK':
                     logging.warning("sunset time update failed!")
                 results = json_obj['results']
-                self.sun_rise = dateparser.parse(results['sunrise'])
-                self.sun_set = dateparser.parse(results['sunset'])
+                local_tz = dateutil.tz.tzlocal()
+                self.sun_rise = dateparser.parse(results['sunrise']).astimezone(local_tz)
+                self.sun_set = dateparser.parse(results['sunset']).astimezone(local_tz)
                 logging.warning("sunrise %s, runset %s", self.sun_rise, self.sun_set)
         await asyncio.sleep(60 * 60 * 6)
         return self.update_sun_time()
