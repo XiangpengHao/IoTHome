@@ -32,25 +32,28 @@ class Light:
         self.light_status = False
         self.on_event = on_event
         self.off_event = off_event
+        self.light_lock = asyncio.Lock()
 
     async def on(self):
         if self.light_status:
             return
         self.light_status = True
-        async with aiohttp.ClientSession() as session:
-            async with session.get(IFTTT_URL.format(event=self.on_event, key=IFTTT)) as response:
-                await response.text()
-                logging.warning("%s triggered", self.on_event)
+        async with self.light_lock:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(IFTTT_URL.format(event=self.on_event, key=IFTTT)) as response:
+                    await response.text()
+                    logging.warning("%s triggered", self.on_event)
 
     async def off(self):
         if not self.light_status:
             return
         self.light_status = False
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(IFTTT_URL.format(event=self.off_event, key=IFTTT)) as response:
-                await response.text()
-                logging.warning("%s triggered", self.off_event)
+        async with self.light_lock:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(IFTTT_URL.format(event=self.off_event, key=IFTTT)) as response:
+                    await response.text()
+                    logging.warning("%s triggered", self.off_event)
 
     async def bot_on(self, message: types.Message):
         await self.on()
