@@ -6,6 +6,8 @@ import threading
 from aiohttp import web
 import aiohttp
 import asyncio
+import json
+import dateparser 
 from aiogram import Bot, Dispatcher, executor, types
 
 from config import TOKEN, IFTTT, WEB_TOKEN
@@ -21,8 +23,10 @@ GPIO.setup(5, GPIO.IN)
 
 IFTTT_URL = 'https://maker.ifttt.com/trigger/{event}/with/key/{key}'
 
+# Vancouver
+SUNSET_URL = 'https://api.sunrise-sunset.org/json?lat=49.2827&lng=-123.1207&formatted=0'
+
 TIME_LIMIT = 10 * 60
-DND = range(0, 8)
 
 ifttt_session = None
 
@@ -80,8 +84,46 @@ class Light:
         return web.Response(text=f"{self.off_event} triggered")
 
 
-room_light = Light("light_on", "light_off")
-plant_light = Light("plant_on", "plant_off")
+class Room:
+    def __init__(self):
+        self.room_light = Light("light_on", "light_off")
+        self.plant_light = Light("plant_on", "plant_off")
+        self.sun_rise = None
+        self.sun_set = None
+
+    async def motion_detected(self):
+        await self.plant_light.off()
+        await self.room_light.on()
+
+    async def motion_timeout(self):
+        now = datetime.datetime.now()
+        await self.room_light.off()
+        if self.sun_rise < now < self.sun_set:
+            await self.plant_light.on()
+        else:
+            await self.plant_light.off()
+
+    async def update_sun_time(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(SUNSET_URL) as response:
+                json_obj = await response.text()
+                json_obj = json.loads(json_obj)
+                if json_obj['status'] != 'OK':
+                    logging.warning("sunset time update failed!")
+                results = json_obj['results']
+                self.sun_rise = dateparser.parse(results['sunrise'])
+                self.sun_set = dateparser.parse(results['sunset'])
+                logging.warning("sunrise %s, runset %s", self.sun_rise, self.sun_set)
+        await asyncio.sleep(60 * 60 * 6)
+        return self.update_sun_time()
+    
+    def get_sun_rise_set(self):
+        if not self.sun_rise or not self.sun_set:
+            return 'unknown'
+        rise = self.sun_rise
+        return f'{rise.month}-{rise.day} {rise.hour}-{self.sun_set.hour}'
+
+room = Room()
 
 
 async def motion_task():
@@ -91,36 +133,31 @@ async def motion_task():
         now = datetime.datetime.now()
         if GPIO.input(23):
             logging.info("Motion detected: %s", now)
-            if now.hour not in DND:
-                await room_light.on()
-                await plant_light.off()
+            await room.motion_detected()
             await asyncio.sleep(5)
             counter = 0
+
         await asyncio.sleep(1)
         counter += 1
         if counter >= TIME_LIMIT:
-            await room_light.off()
-            if now.hour not in DND:
-                await plant_light.on()
-            else:
-                await plant_light.off()
+            await room.motion_timeout()
             counter = 0
 
 
 async def display_task():
     dp = Display()
     while True:
-        dp.draw(room_light.light_status, GPIO.input(5))
+        dp.draw(room.room_light.light_status, GPIO.input(5), room.get_sun_rise_set())
         await asyncio.sleep(10 * 60)
         logging.info("Refreshing... %s", datetime.datetime.now())
 
 
 async def web_task():
     app = web.Application()
-    app.add_routes([web.get('/room_on', room_light.web_on)])
-    app.add_routes([web.get('/room_off', room_light.web_off)])
-    app.add_routes([web.get('/plant_on', plant_light.web_on)])
-    app.add_routes([web.get('/plant_off', plant_light.web_off)])
+    app.add_routes([web.get('/room_on', room.room_light.web_on)])
+    app.add_routes([web.get('/room_off', room.room_light.web_off)])
+    app.add_routes([web.get('/plant_on', room.plant_light.web_on)])
+    app.add_routes([web.get('/plant_off', room.plant_light.web_off)])
 
     runner = web.AppRunner(app)
     await runner.setup()
@@ -130,10 +167,12 @@ async def web_task():
 
 
 def bot_setup(loop):
-    dp.register_message_handler(room_light.bot_on, commands=['light_on'])
-    dp.register_message_handler(room_light.bot_off, commands=['light_off'])
-    dp.register_message_handler(plant_light.bot_on, commands=['plant_on'])
-    dp.register_message_handler(plant_light.bot_off, commands=['plant_off'])
+    dp.register_message_handler(room.room_light.bot_on, commands=['light_on'])
+    dp.register_message_handler(
+        room.room_light.bot_off, commands=['light_off'])
+    dp.register_message_handler(room.plant_light.bot_on, commands=['plant_on'])
+    dp.register_message_handler(
+        room.plant_light.bot_off, commands=['plant_off'])
     logging.info("start polling...")
     bot_exec = executor.Executor(dp, skip_updates=True)
     bot_exec._prepare_polling()
@@ -144,6 +183,7 @@ def bot_setup(loop):
 
 def main():
     loop = asyncio.get_event_loop()
+    loop.create_task(room.update_sun_time())
     loop.create_task(motion_task())
     loop.create_task(web_task())
     loop.create_task(display_task())
