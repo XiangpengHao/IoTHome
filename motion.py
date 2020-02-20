@@ -8,7 +8,7 @@ import aiohttp
 import asyncio
 import json
 import dateparser 
-import dateutil
+import dateutil.tz
 from aiogram import Bot, Dispatcher, executor, types
 
 from config import TOKEN, IFTTT, WEB_TOKEN
@@ -89,15 +89,19 @@ class Room:
     def __init__(self):
         self.room_light = Light("light_on", "light_off")
         self.plant_light = Light("plant_on", "plant_off")
+        self.dnd_time = range(0, 8)
         self.sun_rise = None
         self.sun_set = None
 
     async def motion_detected(self):
+        now = datetime.datetime.now()
+        if now.hour in self.dnd_time:
+            return
         await self.plant_light.off()
         await self.room_light.on()
 
     async def motion_timeout(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().astimezone(dateutil.tz.tzlocal())
         await self.room_light.off()
         if self.sun_rise < now < self.sun_set:
             await self.plant_light.on()
