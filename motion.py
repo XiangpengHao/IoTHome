@@ -121,7 +121,7 @@ class Room:
                 self.sun_set = dateparser.parse(results['sunset']).astimezone(local_tz)
                 logging.warning("sunrise %s, runset %s", self.sun_rise, self.sun_set)
         await asyncio.sleep(60 * 60 * 6)
-        return self.update_sun_time()
+        return await self.update_sun_time()
     
     def get_sun_rise_set(self):
         if not self.sun_rise or not self.sun_set:
