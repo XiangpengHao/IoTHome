@@ -89,7 +89,7 @@ class Room:
     def __init__(self):
         self.room_light = Light("light_on", "light_off")
         self.plant_light = Light("plant_on", "plant_off")
-        self.dnd_time = range(0, 8)
+        self.dnd_time = range(0, 5)
         self.sun_rise = None
         self.sun_set = None
 
