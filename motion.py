@@ -89,7 +89,7 @@ class Room:
     def __init__(self):
         self.room_light = Light("light_on", "light_off")
         self.plant_light = Light("plant_on", "plant_off")
-        self.dnd_time = range(0, 5)
+        self.dnd_time = range(0, 7)
         self.sun_rise = None
         self.sun_set = None
 
@@ -97,7 +97,11 @@ class Room:
         now = datetime.datetime.now()
         if now.hour in self.dnd_time:
             return
-        await self.plant_light.off()
+
+        if self.sun_rise < now < self.sun_set:
+            await self.plant_light.on()
+        else:
+            await self.plant_light.off()
         await self.room_light.on()
 
     async def motion_timeout(self):
